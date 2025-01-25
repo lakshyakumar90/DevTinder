@@ -1,32 +1,22 @@
 const express = require("express");
 
 const app = express();
+const { adminAuth, userAuth } = require("./middlewareas/auth");
 
-app.use("/user/:userId", (req, res, next) => {
-    console.log("Hello 1");
-    // res.send("Got a GET request at /user/:userId");
-    next();
-    },
-    (req, res, next) => {
-        console.log("Hello 2");
-        // res.send("Got a GET request at /user/:userId");
-        next();
-    },
-    (req, res, next) => {
-        console.log("Hello 3");
-        res.send("Got a GET request at /user/:userId");
-        next();
-    }
-)
+//handle all requests => Auth Middleware
+app.use("/admin", adminAuth);
+// app.use("/user", userAuth);
 
-app.get("/abcd", (req, res) => {
-    console.log(req.query);
-    res.send("Got a GET request at /abcd with query params: " + req.query);
+app.get("/admin/getAllData", (req, res, next) => {
+    res.send("All data available");
 })
 
-//  '/abcd' and '/abLakshyacd' both works => anythinf b/w ab and cd
-app.get("/ab*cd", (req, res) => {
-    res.send("Got a GET request at /ab*cd")
+app.get("/admin/deleteUser", (req, res, next) => {
+    res.send("User deleted successfully");
+})
+
+app.get("/user/getData", userAuth, (req, res, next) => {
+    res.send("User data available");
 })
 
 app.listen(3000, () => {
