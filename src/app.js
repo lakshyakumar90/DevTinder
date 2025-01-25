@@ -2,18 +2,33 @@ const express = require("express");
 
 const app = express();
 
-app.get("/user", (req, res) => {
-    res.send("Hello from the user get");
+app.use("/user/:userId", (req, res, next) => {
+    console.log("Hello 1");
+    // res.send("Got a GET request at /user/:userId");
+    next();
+    },
+    (req, res, next) => {
+        console.log("Hello 2");
+        // res.send("Got a GET request at /user/:userId");
+        next();
+    },
+    (req, res, next) => {
+        console.log("Hello 3");
+        res.send("Got a GET request at /user/:userId");
+        next();
+    }
+)
+
+app.get("/abcd", (req, res) => {
+    console.log(req.query);
+    res.send("Got a GET request at /abcd with query params: " + req.query);
 })
 
-app.post("/user", (req, res) => {
-    res.send("Hello from the user post");
+//  '/abcd' and '/abLakshyacd' both works => anythinf b/w ab and cd
+app.get("/ab*cd", (req, res) => {
+    res.send("Got a GET request at /ab*cd")
 })
 
-app.use("/test",(req, res) => {
-    res.send("Hello from the test");  //request handler
-})
-
-app.listen(3000, ()=>{
+app.listen(3000, () => {
     console.log("Successfully started")
 });
