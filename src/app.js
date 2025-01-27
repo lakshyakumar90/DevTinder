@@ -1,40 +1,33 @@
 const express = require("express");
-
+const connectDB = require("./config/database");
+const User = require("./models/user");
 const app = express();
-const { adminAuth, userAuth } = require("./middlewareas/auth");
 
-//handle all requests => Auth Middleware
-app.use("/admin", adminAuth);
-// app.use("/user", userAuth);
-
-app.get("/admin/getAllData", (req, res, next) => {
-    res.send("All data available");
-})
-
-app.get("/admin/deleteUser", (req, res, next) => {
-    res.send("User deleted successfully");
-})
-
-app.get("/user/getData", userAuth, (req, res, next) => {
-    res.send("User data available");
-})
-
-app.get("/getUserData", (req, res, next) => {
+app.post("/signup", async (req, res) => {
+    const user = new User({
+        firstName: "John",
+        lastName: "Doe",
+        email: "john.doe@example.com",
+        password: "hashedPassword123",
+        bio: "Full-stack developer with a passion for creating innovative web applications. Love collaborating on open-source projects.",
+        skills: ["JavaScript", "React", "Node.js", "MongoDB"],
+        experienceLevel: "Advanced",
+        location: "San Francisco, CA",
+    });
     try {
-        throw new Error("Dummy Error");
-        res.send("User data sent successfully");
-    } catch (error) {
-        res.status(500).send("Something went wrong. Please try again later");
+        await user.save();
+        res.send("User created successfully");
+    } catch(err) {
+        res.status(500).send("Error creating user: " + err.message);
     }
 })
 
-app.use("/", (err, req, res, next) => {
-    if (err) {
-        console.log(err);
-        res.status(500).send("Something went wrong");
-    }
+connectDB().then(() => {
+    console.log("Successfully connected to the database");
+    app.listen(3000, () => {
+        console.log("Successfully started")
+    });
+}).catch((err) => {
+    console.error("Error connecting to the database");
+    console.log(err);
 })
-
-app.listen(3000, () => {
-    console.log("Successfully started")
-});
