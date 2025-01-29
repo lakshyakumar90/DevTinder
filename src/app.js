@@ -3,17 +3,21 @@ const connectDB = require("./config/database");
 const User = require("./models/user");
 const app = express();
 
+app.use(express.json());
+
 app.post("/signup", async (req, res) => {
-    const user = new User({
-        firstName: "John",
-        lastName: "Doe",
-        email: "john.doe@example.com",
-        password: "hashedPassword123",
-        bio: "Full-stack developer with a passion for creating innovative web applications. Love collaborating on open-source projects.",
-        skills: ["JavaScript", "React", "Node.js", "MongoDB"],
-        experienceLevel: "Advanced",
-        location: "San Francisco, CA",
-    });
+    // const user = new User({
+    //     firstName: "John",
+    //     lastName: "Doe",
+    //     email: "john.doe@example.com",
+    //     password: "hashedPassword123",
+    //     bio: "Full-stack developer with a passion for creating innovative web applications. Love collaborating on open-source projects.",
+    //     skills: ["JavaScript", "React", "Node.js", "MongoDB"],
+    //     experienceLevel: "Advanced",
+    //     location: "San Francisco, CA",
+    // });
+
+    const user = new User(req.body);
     try {
         await user.save();
         res.send("User created successfully");
