@@ -16,13 +16,25 @@ app.post("/signup", async (req, res) => {
     //     experienceLevel: "Advanced",
     //     location: "San Francisco, CA",
     // });
-
     const user = new User(req.body);
     try {
         await user.save();
         res.send("User created successfully");
-    } catch(err) {
+    } catch (err) {
         res.status(500).send("Error creating user: " + err.message);
+    }
+})
+
+app.get("/feed", async (req, res) => {
+    try {
+        const user = await User.find();
+        if (user.length === 0) {
+            res.status(404).send("Something went wrong: No users found");
+        } else {
+            res.send(user);
+        }
+    } catch (err) {
+        res.status(500).send("Something went wrong: " + err.message);
     }
 })
 
