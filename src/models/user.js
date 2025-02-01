@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+var validator = require('validator');
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -20,10 +21,11 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please enter a valid email address',
-    ],
+    validate(value) {
+      if (!validator.isEmail(value)) {
+        throw new Error('Email is invalid' + value);
+      }
+    }
   },
   password: {
     type: String,
@@ -31,60 +33,76 @@ const userSchema = new mongoose.Schema({
     trim: true,
     minlength: [8, 'Password must be at least 8 characters'],
     maxlength: [20, 'Password must be at most 20 characters'],
-  },
-  age: {
-    type: Number,
-    min: [18, 'Age must be at least 18'],
-  },
-  bio: {
-    type: String,
-    maxlength: [300, 'Bio must be at most 300 characters'],
-  },
-  skills: {
-    type: [String],
-    default: [],
-  },
-  experienceLevel: {
-    type: String,
-    enum: {
-      values: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
-      message: 'Experience level must be either Beginner, Intermediate, Advanced, or Expert',
+    validate(value) {
+      if (!validator.isStrongPassword(value)) {
+        throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+      }
     },
-  },
-  location: {
-    type: String,
-  },
-  profilePicture: {
-    type: String,
-    default:
-      'https://t3.ftcdn.net/jpg/06/33/54/78/360_F_633547842_AugYzexTpMJ9z1YcpTKUBoqBF0CUCk10.jpg',
-  },
-  gender: {
-    type: String,
-    lowercase: true,
-    enum: {
-      values: ['male', 'female', 'other'],
-      message: 'Gender must be "male", "female", or "other"',
+    age: {
+      type: Number,
+      min: [18, 'Age must be at least 18'],
     },
+    bio: {
+      type: String,
+      maxlength: [300, 'Bio must be at most 300 characters'],
+    },
+    skills: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (skillsArray) {
+          return skillsArray.length <= 12;
+        },
+        message: 'You can have at most 5 skills.'
+      }
+    },
+    experienceLevel: {
+      type: String,
+      enum: {
+        values: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+        message: 'Experience level must be either Beginner, Intermediate, Advanced, or Expert',
+      },
+    },
+    location: {
+      type: String,
+    },
+    profilePicture: {
+      type: String,
+      default:
+        'https://t3.ftcdn.net/jpg/06/33/54/78/360_F_633547842_AugYzexTpMJ9z1YcpTKUBoqBF0CUCk10.jpg',
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error('Invalid URL');
+        }
+      }
+    },
+    gender: {
+      type: String,
+      lowercase: true,
+      enum: {
+        values: ['male', 'female', 'other'],
+        message: 'Gender must be "male", "female", or "other"',
+      },
+    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    dislikes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    matches: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
-  dislikes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
-  matches: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
 }, {
   timestamps: true,
 });

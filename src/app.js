@@ -54,20 +54,56 @@ app.delete("/user", async (req, res) => {
     }
 })
 
-app.patch("/user", async (req, res) => {
-    const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+    const userId = req.params.userId;
     const update = req.body.update;
+    const skills = req.body.skills;
+
+    // Define an array of allowed fields for update.
+    // Make sure to exclude 'email' or any other fields you don't want to allow.
     try {
-        const user = await User.findByIdAndUpdate(userId, update, { runValidators: true });
-        if (!user) {
-            res.status(404).send("User not found");
-        } else {
-            res.send("User updated successfully");
+        const allowedUpdates = [
+            'firstName',
+            'lastName',
+            'password',
+            'age',
+            'bio',
+            'skills',
+            'experienceLevel',
+            'location',
+            'profilePicture',
+            'gender',
+        ];
+
+        // Extract the keys from the update object.
+        const updateKeys = Object.keys(update);
+
+        // Check if every key in the update is in the allowedUpdates list.
+        const isValidOperation = updateKeys.every((key) => allowedUpdates.includes(key));
+
+        if (skills) {
+            if (skills.length > 12) {
+                throw new Error("You can only have up to 12 skills");
+            }
         }
+
+        if (!isValidOperation) {
+            throw new Error("Invalid updates! Only allowed fields can be updated and email cannot be updated.");
+        }
+
+        // { new: true } returns the updated document.
+        // { runValidators: true } runs schema validators on update.
+        const user = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+        res.send("User updated successfully");
     } catch (err) {
-        res.status(500).send("Update Validation failed : " + err.message);
+        res.status(500).send("Update Validation failed: " + err.message);
     }
-})
+});
+
+
 
 connectDB().then(() => {
     console.log("Successfully connected to the database");
