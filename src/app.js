@@ -38,13 +38,13 @@ app.get("/feed", async (req, res) => {
     }
 })
 
-app.delete("/user", async(req, res) => {
+app.delete("/user", async (req, res) => {
     const userId = req.body.userId;
-    try{
+    try {
         const user = await User.findByIdAndDelete(userId);
         // const user = await User.findByIdAndDelete({_id: userId});
 
-        if(!user){
+        if (!user) {
             res.status(404).send("User not found");
         } else {
             res.send("User deleted successfully");
@@ -54,18 +54,18 @@ app.delete("/user", async(req, res) => {
     }
 })
 
-app.patch("/user", async(req, res) => {
+app.patch("/user", async (req, res) => {
     const userId = req.body.userId;
     const update = req.body.update;
     try {
-        const user = await User.findByIdAndUpdate(userId, update);
-        if(!user){
+        const user = await User.findByIdAndUpdate(userId, update, { runValidators: true });
+        if (!user) {
             res.status(404).send("User not found");
         } else {
             res.send("User updated successfully");
-        }    
+        }
     } catch (err) {
-        res.status(500).send("Something went wrong: " + err.message);
+        res.status(500).send("Update Validation failed : " + err.message);
     }
 })
 

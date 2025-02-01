@@ -3,29 +3,42 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: true,
-    unique: true,
+    required: [true, 'First name is required'],
     trim: true,
+    minlength: [3, 'First name must be at least 3 characters'],
+    maxlength: [50, 'First name must be at most 50 characters'],
   },
   lastName: {
     type: String,
-    required: true,
-    unique: true,
     trim: true,
+    minlength: [3, 'Last name must be at least 3 characters'],
+    maxlength: [50, 'Last name must be at most 50 characters'],
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
+    trim: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      'Please enter a valid email address',
+    ],
   },
   password: {
     type: String,
-    required: true,
+    required: [true, 'Password is required'],
+    trim: true,
+    minlength: [8, 'Password must be at least 8 characters'],
+    maxlength: [20, 'Password must be at most 20 characters'],
+  },
+  age: {
+    type: Number,
+    min: [18, 'Age must be at least 18'],
   },
   bio: {
     type: String,
-    maxlength: 300,
+    maxlength: [300, 'Bio must be at most 300 characters'],
   },
   skills: {
     type: [String],
@@ -33,34 +46,60 @@ const userSchema = new mongoose.Schema({
   },
   experienceLevel: {
     type: String,
-    enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+    enum: {
+      values: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+      message: 'Experience level must be either Beginner, Intermediate, Advanced, or Expert',
+    },
   },
   location: {
     type: String,
   },
-//   profilePicture: {
-//     type: String, // URL to the profile picture
-//   },
-//   likes: {
-//     type: [mongoose.Schema.Types.ObjectId],
-//     ref: 'User',
-//     default: [],
-//   },
-//   dislikes: {
-//     type: [mongoose.Schema.Types.ObjectId],
-//     ref: 'User',
-//     default: [],
-//   },
-//   matches: {
-//     type: [mongoose.Schema.Types.ObjectId],
-//     ref: 'User',
-//     default: [],
-//   },
-//   createdAt: {
-//     type: Date,
-//     default: Date.now,
-//   },
+  profilePicture: {
+    type: String,
+    default:
+      'https://t3.ftcdn.net/jpg/06/33/54/78/360_F_633547842_AugYzexTpMJ9z1YcpTKUBoqBF0CUCk10.jpg',
+  },
+  gender: {
+    type: String,
+    lowercase: true,
+    enum: {
+      values: ['male', 'female', 'other'],
+      message: 'Gender must be "male", "female", or "other"',
+    },
+  },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
+  dislikes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
+  matches: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
+}, {
+  timestamps: true,
 });
 
+// Virtual property for full name
+userSchema.virtual('fullName').get(function () {
+  return `${this.firstName} ${this.lastName || ''}`.trim();
+});
 
-module.exports = mongoose.model('User', userSchema);;
+// Optionally, add a pre-save hook to hash the password before saving:
+// userSchema.pre('save', async function(next) {
+//   if (this.isModified('password')) {
+//     // Hash password logic here (e.g., using bcrypt)
+//   }
+//   next();
+// });
+
+module.exports = mongoose.model('User', userSchema);
