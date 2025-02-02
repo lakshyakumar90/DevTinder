@@ -1,27 +1,35 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const bcrypt = require("bcrypt");
 const app = express();
+const { validateSignupData, validateUserUpdate } = require("./utils/validation");
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-    // const user = new User({
-    //     firstName: "John",
-    //     lastName: "Doe",
-    //     email: "john.doe@example.com",
-    //     password: "hashedPassword123",
-    //     bio: "Full-stack developer with a passion for creating innovative web applications. Love collaborating on open-source projects.",
-    //     skills: ["JavaScript", "React", "Node.js", "MongoDB"],
-    //     experienceLevel: "Advanced",
-    //     location: "San Francisco, CA",
-    // });
-    const user = new User(req.body);
     try {
+        validateSignupData(req);
+        const { firstName, lastName, email, password, age, experienceLevel, location, gender } = req.body;
+        //hashing password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = new User({
+            firstName,
+            lastName,
+            email,
+            age,
+            experienceLevel,
+            location,
+            gender,
+            password: hashedPassword,
+        });
+        console.log(user);
+
         await user.save();
         res.send("User created successfully");
     } catch (err) {
-        res.status(500).send("Error creating user: " + err.message);
+        res.status(500).send("ERROR: " + err.message);
     }
 })
 
@@ -56,41 +64,12 @@ app.delete("/user", async (req, res) => {
 
 app.patch("/user/:userId", async (req, res) => {
     const userId = req.params.userId;
-    const update = req.body.update;
-    const skills = req.body.skills;
-
+    const { update } = req.body;
     // Define an array of allowed fields for update.
     // Make sure to exclude 'email' or any other fields you don't want to allow.
     try {
-        const allowedUpdates = [
-            'firstName',
-            'lastName',
-            'password',
-            'age',
-            'bio',
-            'skills',
-            'experienceLevel',
-            'location',
-            'profilePicture',
-            'gender',
-        ];
-
-        // Extract the keys from the update object.
-        const updateKeys = Object.keys(update);
-
-        // Check if every key in the update is in the allowedUpdates list.
-        const isValidOperation = updateKeys.every((key) => allowedUpdates.includes(key));
-
-        if (skills) {
-            if (skills.length > 12) {
-                throw new Error("You can only have up to 12 skills");
-            }
-        }
-
-        if (!isValidOperation) {
-            throw new Error("Invalid updates! Only allowed fields can be updated and email cannot be updated.");
-        }
-
+        // Validate update fields and skills
+        validateUserUpdate(req);
         // { new: true } returns the updated document.
         // { runValidators: true } runs schema validators on update.
         const user = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
