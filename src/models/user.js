@@ -83,18 +83,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     enum: ['male', 'female', 'other'],
   },
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
-  dislikes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
   matches: [
     {
       type: mongoose.Schema.Types.ObjectId,

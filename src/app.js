@@ -1,11 +1,17 @@
+require('dotenv').config();
+
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
 const app = express();
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { validateSignupData, validateUserUpdate } = require("./utils/validation");
+const { userAuth } = require("./middlewares/auth");
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
     try {
@@ -33,7 +39,7 @@ app.post("/signup", async (req, res) => {
     }
 })
 
-app.post("/login", async(req, res) => {
+app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -42,12 +48,26 @@ app.post("/login", async(req, res) => {
             throw new Error("Invalid Credentials");
         }
         const isValidPassword = await bcrypt.compare(password, user.password);
-        if (!isValidPassword) {
+
+        if (isValidPassword) {
+            const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+            res.cookie("token", token, {expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)});
+            res.send("Login successful");
+        } else {
             throw new Error("Invalid Credentials");
         }
-        res.send("Login successful");
+
     } catch (err) {
         res.status(500).send("ERROR: " + err.message);
+    }
+})
+
+app.get("/profile", userAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        res.send(user);
+    } catch (err) {
+        res.status(500).send("Something went wrong: " + err.message);
     }
 })
 
