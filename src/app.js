@@ -13,54 +13,16 @@ const { userAuth } = require("./middlewares/auth");
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signup", async (req, res) => {
-    try {
-        validateSignupData(req);
-        const { firstName, lastName, email, password, age, experienceLevel, location, gender } = req.body;
-        //hashing password
-        const hashedPassword = await bcrypt.hash(password, 10);
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
+const userRouter = require("./routes/user");
+const requestRouter = require("./routes/requests");
 
-        const user = new User({
-            firstName,
-            lastName,
-            email,
-            age,
-            experienceLevel,
-            location,
-            gender,
-            password: hashedPassword,
-        });
-        console.log(user);
+app.use("/", authRouter);
+app.use("/", profileRouter);
+app.use("/", userRouter);
+app.use("/", requestRouter);
 
-        await user.save();
-        res.send("User created successfully");
-    } catch (err) {
-        res.status(500).send("ERROR: " + err.message);
-    }
-})
-
-app.post("/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        const user = await User.findOne({ email: email });
-        if (!user) {
-            throw new Error("Invalid Credentials");
-        }
-        const isValidPassword = await user.validatePassword(password);
-
-        if (isValidPassword) {
-            const token = await user.signJWT();
-            res.cookie("token", token, {expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)});
-            res.send("Login successful");
-        } else {
-            throw new Error("Invalid Credentials");
-        }
-
-    } catch (err) {
-        res.status(500).send("ERROR: " + err.message);
-    }
-})
 
 app.get("/profile", userAuth, async (req, res) => {
     try {
@@ -100,25 +62,7 @@ app.delete("/user", async (req, res) => {
     }
 })
 
-app.patch("/user/:userId", async (req, res) => {
-    const userId = req.params.userId;
-    const { update } = req.body;
-    // Define an array of allowed fields for update.
-    // Make sure to exclude 'email' or any other fields you don't want to allow.
-    try {
-        // Validate update fields and skills
-        validateUserUpdate(req);
-        // { new: true } returns the updated document.
-        // { runValidators: true } runs schema validators on update.
-        const user = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
-        if (!user) {
-            return res.status(404).send("User not found");
-        }
-        res.send("User updated successfully");
-    } catch (err) {
-        res.status(500).send("Update Validation failed: " + err.message);
-    }
-});
+
 
 
 
