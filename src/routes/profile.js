@@ -1,26 +1,55 @@
 const express = require('express');
-const { validateUserUpdate } = require('../utils/validation');
+const { validateEditProfileData } = require('../utils/validation');
 const User = require('../models/user');
+const { userAuth } = require('../middlewares/auth');
+const bcrypt = require("bcrypt");
 
 const profileRouter = express.Router();
 
-profileRouter.patch("/user/:userId", async (req, res) => {
-    const userId = req.params.userId;
-    const { update } = req.body;
-    // Define an array of allowed fields for update.
-    // Make sure to exclude 'email' or any other fields you don't want to allow.
+profileRouter.get("/profile/view", userAuth, async (req, res) => {
     try {
-        // Validate update fields and skills
-        validateUserUpdate(req);
-        // { new: true } returns the updated document.
-        // { runValidators: true } runs schema validators on update.
-        const user = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
-        if (!user) {
-            return res.status(404).send("User not found");
-        }
-        res.send("User updated successfully");
+        const user = req.user;
+        res.send(user);
     } catch (err) {
-        res.status(500).send("Update Validation failed: " + err.message);
+        res.status(500).send("Something went wrong: " + err.message);
+    }
+})
+
+profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
+    try{
+        validateEditProfileData(req);
+        const loggedInUser = req.user;
+        Object.keys(req.body).forEach((key) => {
+            loggedInUser[key] = req.body[key];
+        });
+        await loggedInUser.save();
+        res.json({
+            message: loggedInUser.firstName + " your profile has been updated successfully",
+            data: loggedInUser,
+        })
+    } catch (err) {
+        res.status(500).send("Something went wrong: " + err.message);
+    }
+});
+
+profileRouter.patch("/profile/edit/password", userAuth, async (req, res) => {
+    try{
+        const loggedInUser = req.user;
+        const { oldPassword, newPassword } = req.body;
+        const isValidPassword = await loggedInUser.validatePassword(oldPassword);
+        if (isValidPassword) {  
+            const newHashedPassword = await bcrypt.hash(newPassword, 10);
+            loggedInUser.password = newHashedPassword;
+            await loggedInUser.save();
+            res.json({
+                message: "Password updated successfully",
+                data: loggedInUser,
+            })
+        } else {
+            throw new Error("Invalid old password");
+        }
+    } catch (err) {
+        res.status(500).send("Something went wrong: " + err.message);
     }
 });
 

@@ -48,16 +48,14 @@ const validateSignupData = (req) => {
         throw new Error('Gender must be "male", "female", or "other".');
     }
 };
-
 // validator.js (or any appropriate file)
-const validateUserUpdate = (req) => {
-    const { update, skills } = req.body;
+const validateEditProfileData = (req) => {
+    const { skills } = req.body;
     // Define an array of allowed fields for update.
     // Make sure to exclude 'email' or any other fields you don't want to allow.
     const allowedUpdates = [
       'firstName',
       'lastName',
-      'password',
       'age',
       'bio',
       'skills',
@@ -68,7 +66,7 @@ const validateUserUpdate = (req) => {
     ];
   
     // Extract the keys from the update object.
-    const updateKeys = Object.keys(update);
+    const updateKeys = Object.keys(req.body);
   
     // Check if every key in the update is in the allowedUpdates list.
     const isValidOperation = updateKeys.every((key) => allowedUpdates.includes(key));
@@ -78,9 +76,9 @@ const validateUserUpdate = (req) => {
     }
   
     // If skills is provided, check its length.
-    if (skills && skills.length > 12) {
-      throw new Error("You can only have up to 12 skills");
+    if (skills && skills.length > 5) {
+      throw new Error("You can only add up to 5 skills");
     }
   };
 
-module.exports = { validateSignupData, validateUserUpdate };
+module.exports = { validateSignupData, validateEditProfileData };
