@@ -4,8 +4,8 @@ const validateSignupData = (req) => {
     const { firstName, lastName, email, password, age, experienceLevel, location, gender } = req.body;
 
     // Validate firstName
-    if (!firstName || typeof firstName !== 'string' || firstName.trim().length < 3) {
-        throw new Error('First name is required and must be at least 3 characters long.');
+    if (!firstName || typeof firstName !== 'string' || firstName.trim().length < 2) {
+        throw new Error('First name is required and must be at least 2 characters long.');
     }
 
     // Validate lastName (if provided)

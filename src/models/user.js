@@ -5,95 +5,105 @@ var validator = require('validator');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 3,
-    maxlength: 50,
-  },
-  lastName: {
-    type: String,
-    trim: true,
-    minlength: 3,
-    maxlength: 50,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true, // Ensures email is unique
-    lowercase: true,
-    trim: true,
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error('Email is invalid: ' + value);
-      }
-    }
-  },
-  password: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 8,
-    validate(value) {
-      if (!validator.isStrongPassword(value)) {
-        throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
-      }
-    }
-  },
-  age: {
-    type: Number,
-    required: true,
-    min: 18,
-  },
-  bio: {
-    type: String,
-    maxlength: 300,
-  },
-  skills: {
-    type: [String],
-    default: [],
-    validate: {
-      validator: function (skillsArray) {
-        return skillsArray.length <= 12;
-      },
-      message: 'You can have at most 12 skills.'
-    }
-  },
-  experienceLevel: {
-    type: String,
-    lowercase: true,
-    required: true,
-    enum: ['beginner', 'intermediate', 'advanced', 'expert'],
-  },
-  location: {
-    type: String,
-    required: true,
-  },
-  profilePicture: {
-    type: String,
-    default:
-      'https://t3.ftcdn.net/jpg/06/33/54/78/360_F_633547842_AugYzexTpMJ9z1YcpTKUBoqBF0CUCk10.jpg',
-    validate(value) {
-      if (!validator.isURL(value)) {
-        throw new Error('Invalid URL');
-      }
-    }
-  },
-  gender: {
-    type: String,
-    lowercase: true,
-    required: true,
-    enum: ['male', 'female', 'other'],
-  },
-  matches: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+const userSchema = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      required: [true, 'First name is required.'],
+      trim: true,
+      minlength: [2, 'First name must be at least 2 characters long.'],
+      maxlength: [50, 'First name cannot exceed 50 characters.'],
     },
-  ],
-}, { timestamps: true });
+    lastName: {
+      type: String,
+      trim: true,
+      minlength: [3, 'Last name must be at least 3 characters long.'],
+      maxlength: [50, 'Last name cannot exceed 50 characters.'],
+    },
+    email: {
+      type: String,
+      required: [true, 'Email is required.'],
+      unique: true, // Ensures email is unique
+      lowercase: true,
+      trim: true,
+      validate: {
+        validator: function (value) {
+          return validator.isEmail(value);
+        },
+        message: (props) => `Email is invalid: ${props.value}`,
+      },
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required.'],
+      trim: true,
+      minlength: [8, 'Password must be at least 8 characters long.'],
+      validate: {
+        validator: function (value) {
+          return validator.isStrongPassword(value);
+        },
+        message:
+          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+      },
+    },
+    age: {
+      type: Number,
+      required: [true, 'Age is required.'],
+      min: [18, 'You must be at least 18 years old.'],
+    },
+    bio: {
+      type: String,
+      maxlength: [300, 'Bio cannot exceed 300 characters.'],
+    },
+    skills: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (skillsArray) {
+          return new Set(skillsArray).size === skillsArray.length && skillsArray.length <= 12;
+        },
+        message: 'Skills must be unique and at most 12.',
+      },
+    },
+    experienceLevel: {
+      type: String,
+      lowercase: true,
+      required: [true, 'Experience level is required.'],
+      enum: {
+        values: ['beginner', 'intermediate', 'advanced', 'expert'],
+        message: 'Experience level must be one of: beginner, intermediate, advanced, expert.',
+      },
+    },
+    location: {
+      type: String,
+      required: [true, 'Location is required.'],
+    },
+    profilePicture: {
+      type: String,
+      default: 'https://t3.ftcdn.net/jpg/06/33/54/78/360_F_633547842_AugYzexTpMJ9z1YcpTKUBoqBF0CUCk10.jpg',
+      validate: {
+        validator: function (value) {
+          return validator.isURL(value);
+        },
+        message: 'Invalid URL for profile picture.',
+      },
+    },
+    gender: {
+      type: String,
+      lowercase: true,
+      required: [true, 'Gender is required.'],
+      enum: {
+        values: ['male', 'female', 'other'],
+        message: 'Gender must be one of: male, female, other.',
+      },
+    },
+  },
+  { timestamps: true }
+);
+userSchema.virtual('fullName').get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
+
 
 userSchema.methods.signJWT = async function () {
   const user = this;
