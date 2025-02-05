@@ -77,4 +77,51 @@ requestRouter.post("/request/send/:status/:toUserId",userAuth, async (req, res) 
     }
 })
 
+requestRouter.post("/request/review/:status/:requestId",userAuth, async (req, res) => {
+    try {
+        const { status, requestId } = req.params;
+        const loggedInUser = req.user;
+        const allowedStatus = ["accepted", "rejected"];
+        
+        if (!allowedStatus.includes(status)) {
+            return res.status(400).json({
+                message: "Invalid status : " + status,
+            })
+        }
+
+        if(!mongoose.isValidObjectId(requestId)) {
+            return res.status(400).json({
+                message: "Invalid request ID format",
+            });
+        }
+
+        const connectionRequest = await ConnectionRequest.findOne({
+            _id: requestId,
+            toUserId: loggedInUser._id,
+            status: "interested",
+        });
+
+        if (!connectionRequest) {
+            return res.status(404).json({
+                message: "Connection request not found",
+            })
+        }
+
+        connectionRequest.status = status;
+        const data = await connectionRequest.save();
+
+        const statusMessage = status === "accepted" 
+            ? "Connection request accepted successfully"
+            : "Connection request rejected successfully";
+            
+        res.json({
+            message: statusMessage,
+            data,
+        }) 
+    }
+    catch (err) {
+        res.status(500).send("Something went wrong: " + err.message);
+    }
+})
+
 module.exports = requestRouter;
