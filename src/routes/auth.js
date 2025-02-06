@@ -9,7 +9,7 @@ authRouter.post("/signup", async (req, res) => {
     try {
         validateSignupData(req);
         const { firstName, lastName, email, password, age, experienceLevel, location, gender } = req.body;
-        //hashing password
+        // Hashing password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = new User({
@@ -23,11 +23,14 @@ authRouter.post("/signup", async (req, res) => {
             password: hashedPassword,
         });
         await user.save();
-        res.send("User created successfully");
+        // Sign JWT and log the user in immediately after signup
+        const token = await user.signJWT();
+        res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) });
+        res.send("User created and logged in successfully");
     } catch (err) {
         res.status(500).send("ERROR: " + err.message);
     }
-})
+});
 
 authRouter.post("/login", async (req, res) => {
     try {

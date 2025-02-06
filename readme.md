@@ -72,4 +72,39 @@ The API includes comprehensive error handling for:
 - Duplicate requests
 - Server errors
 
+## 🚀 API Endpoints
+
+### User Feed
+
+GET /feed # Get user feed
+- Fetches a list of users for the feed, excluding:
+    - The logged-in user
+    - Already connected users
+    - Users to whom a request has already been sent
+    - Ignored users
+
+### Received Connection Requests
+
+GET /user/requests/received # Get received connection requests
+- Retrieves all pending connection requests for the logged-in user.
+
+### User Connections
+
+GET /user/connections # Get user connections
+- Fetches all accepted connections for the logged-in user.
+
+## 💡 User Feed Logic
+
+The user feed is designed to show relevant user profiles based on the following criteria:
+1. **Exclusion of Self:** The feed should not include the logged-in user's profile.
+2. **Exclusion of Existing Connections:** Users who are already connected should not appear in the feed.
+3. **Exclusion of Requested Users:** Users to whom a connection request has already been sent should be hidden.
+4. **Exclusion of Ignored Users:** Users who have been ignored should not be shown again.
+5. **Pagination:** The feed supports pagination to efficiently handle a large number of users.
+
+## ⚙️ Feed Parameters
+
+- `page` (optional): Page number for pagination (default: 1).
+- `limit` (optional): Number of users per page (default: 10, max: 30).
+
 ---
