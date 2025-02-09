@@ -5,17 +5,17 @@ const validateSignupData = (req) => {
 
     // Validate firstName
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length < 2) {
-        throw new Error('First name is required and must be at least 2 characters long.');
+        throw new Error("First name is required and must be at least 2 characters long.");
     }
 
     // Validate lastName (if provided)
     if (lastName && (typeof lastName !== 'string' || lastName.trim().length < 3)) {
-        throw new Error('Last name must be at least 3 characters long if provided.');
+        throw new Error("Last name must be at least 3 characters long if provided.");
     }
 
     // Validate email
     if (!email || !validator.isEmail(email)) {
-        throw new Error('A valid email address is required.');
+        throw new Error("A valid email address is required.");
     }
 
     // Validate password
@@ -32,8 +32,8 @@ const validateSignupData = (req) => {
     }
 
     // Validate experienceLevel (if provided)
-    const allowedExperienceLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
-    if (experienceLevel && !allowedExperienceLevels.includes(experienceLevel)) {
+    const allowedExperienceLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+    if (experienceLevel && !(allowedExperienceLevels.includes(String(experienceLevel).toLowerCase()))) {
         throw new Error(`Experience level must be one of: ${allowedExperienceLevels.join(', ')}.`);
     }
 
@@ -54,31 +54,31 @@ const validateEditProfileData = (req) => {
     // Define an array of allowed fields for update.
     // Make sure to exclude 'email' or any other fields you don't want to allow.
     const allowedUpdates = [
-      'firstName',
-      'lastName',
-      'age',
-      'bio',
-      'skills',
-      'experienceLevel',
-      'location',
-      'profilePicture',
-      'gender',
+        'firstName',
+        'lastName',
+        'age',
+        'bio',
+        'skills',
+        'experienceLevel',
+        'location',
+        'profilePicture',
+        'gender',
     ];
-  
+
     // Extract the keys from the update object.
     const updateKeys = Object.keys(req.body);
-  
+
     // Check if every key in the update is in the allowedUpdates list.
     const isValidOperation = updateKeys.every((key) => allowedUpdates.includes(key));
-  
+
     if (!isValidOperation) {
-      throw new Error("Invalid updates! Only allowed fields can be updated and email cannot be updated.");
+        throw new Error("Invalid updates! Only allowed fields can be updated and email cannot be updated.");
     }
-  
+
     // If skills is provided, check its length.
     if (skills && skills.length > 5) {
-      throw new Error("You can only add up to 5 skills");
+        throw new Error("You can only add up to 5 skills");
     }
-  };
+};
 
 module.exports = { validateSignupData, validateEditProfileData };

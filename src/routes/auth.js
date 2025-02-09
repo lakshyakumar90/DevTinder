@@ -26,9 +26,12 @@ authRouter.post("/signup", async (req, res) => {
         // Sign JWT and log the user in immediately after signup
         const token = await user.signJWT();
         res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) });
-        res.send("User created and logged in successfully");
+        res.json({
+            message: "Signed up successfully",
+            data: user,
+        });
     } catch (err) {
-        res.status(500).send("ERROR: " + err.message);
+        res.status(500).send(err.message);
     }
 });
 
@@ -38,26 +41,33 @@ authRouter.post("/login", async (req, res) => {
 
         const user = await User.findOne({ email: email });
         if (!user) {
-            throw new Error("Invalid Credentials");
+            return res.json({
+                message: "Invalid Credentials"
+            })
         }
         const isValidPassword = await user.validatePassword(password);
 
         if (isValidPassword) {
             const token = await user.signJWT();
             res.cookie("token", token, {expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)});
-            res.send("Login successful");
+            res.json({
+                message: "Logged in successfully",
+                data: user,
+            })
         } else {
             throw new Error("Invalid Credentials");
         }
 
     } catch (err) {
-        res.status(500).send("ERROR: " + err.message);
+        res.status(500).send(err.message);
     }
 })
 
 authRouter.post("/logout", (req, res) => {
     res.cookie("token", null, {expires: new Date(Date.now())});
-    res.send("Logged out successfully");
+    res.json({
+        message: "Logged out successfully",
+    })
 })
 
 module.exports = authRouter;
