@@ -1,7 +1,7 @@
 const validator = require("validator");
 
 const validateSignupData = (req) => {
-    const { firstName, lastName, email, password, age, experienceLevel, location, gender } = req.body;
+    const { firstName, lastName, email, password, age, experienceLevel, location, gender, education, workExperience, profileSummary } = req.body;
 
     // Validate firstName
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length < 2) {
@@ -47,6 +47,19 @@ const validateSignupData = (req) => {
     if (gender && !allowedGenders.includes(String(gender).toLowerCase())) {
         throw new Error('Gender must be "male", "female", or "other".');
     }
+
+    // Validate education
+    if (education && typeof education !== 'string') {
+        throw new Error('Education must be a string.');
+    }
+
+    if(workExperience && typeof workExperience !== 'string') {
+        throw new Error('Work experience must be a string.');
+    }
+
+    if(profileSummary && typeof profileSummary !== 'string') {  
+        throw new Error('Profile summary must be a string.');
+    }
 };
 // validator.js (or any appropriate file)
 const validateEditProfileData = (req) => {
@@ -63,6 +76,10 @@ const validateEditProfileData = (req) => {
         'location',
         'profilePicture',
         'gender',
+        'education',
+        'workExperience',
+        'socialLinks',
+        'profileSummary',
     ];
 
     // Extract the keys from the update object.
@@ -76,8 +93,8 @@ const validateEditProfileData = (req) => {
     }
 
     // If skills is provided, check its length.
-    if (skills && skills.length > 5) {
-        throw new Error("You can only add up to 5 skills");
+    if (skills && skills.length > 30) {
+        throw new Error("You can only add up to 30 skills");
     }
 };
 

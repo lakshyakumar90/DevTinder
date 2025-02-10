@@ -19,7 +19,7 @@ const connectionRequestSchema = new mongoose.Schema({
             message: "{VALUE} is not supported",
         },
     },
-});
+}, { timestamps: true });
 
 connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
 

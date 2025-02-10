@@ -12,7 +12,7 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
         const connectionRequests = await ConnectionRequest.find({
             toUserId: loggedInUser._id,
             status: "interested",
-        }).populate("fromUserId", "firstName lastName profilePicture gender bio location experienceLevel skills");
+        }).populate("fromUserId", "firstName lastName profilePicture gender bio location experienceLevel skills profileSummary education");
 
 
         res.json({
@@ -28,7 +28,7 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
 });
 
 
-const DATA = "firstName lastName profilePicture gender bio location experienceLevel skills";
+const DATA = "firstName lastName profilePicture gender bio location experienceLevel skills profileSummary education workExperience socialLinks";
 userRouter.get("/user/connections", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
@@ -55,7 +55,7 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
                 : connection.fromUserId;
 
             // Only include the specified fields
-            const { firstName, lastName, profilePicture, gender, bio, location, experienceLevel, skills } = connectedUser;
+            const { firstName, lastName, profilePicture, gender, bio, location, experienceLevel, skills, profileSummary, education } = connectedUser;
             return {
                 connectionId: connection._id,
                 user: {
@@ -66,7 +66,9 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
                     bio,
                     location,
                     experienceLevel,
-                    skills
+                    skills,
+                    profileSummary,
+                    education,
                 },
                 status: connection.status,
             };

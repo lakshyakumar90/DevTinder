@@ -53,16 +53,15 @@ const userSchema = new mongoose.Schema(
     },
     bio: {
       type: String,
-      maxlength: [300, 'Bio cannot exceed 300 characters.'],
     },
     skills: {
       type: [String],
       default: [],
       validate: {
         validator: function (skillsArray) {
-          return new Set(skillsArray).size === skillsArray.length && skillsArray.length <= 12;
+          return new Set(skillsArray).size === skillsArray.length && skillsArray.length <= 30;
         },
-        message: 'Skills must be unique and at most 12.',
+        message: 'Skills must be unique and at most 30.',
       },
     },
     experienceLevel: {
@@ -96,6 +95,60 @@ const userSchema = new mongoose.Schema(
         values: ['male', 'female', 'other'],
         message: 'Gender must be one of: male, female, other.',
       },
+    },
+    profileSummary: {
+      type: String,
+      required: [true, 'Profile summary is required.'],
+      maxlength: [200, 'Profile summary cannot exceed 200 characters.'],
+    },
+    socialLinks: {
+      instagram: {
+        type: String,
+        validate: {
+          validator: function(value) {
+            if (!value) return true; // Allow empty/null values
+            return value.includes('instagram.com');
+          },
+          message: 'Instagram URL must contain instagram.com'
+        }
+      },
+      github: {
+        type: String,
+        validate: {
+          validator: function(value) {
+            if (!value) return true;
+            return value.includes('github.com');
+          },
+          message: 'Github URL must contain github.com'
+        }
+      },
+      linkedin: {
+        type: String,
+        validate: {
+          validator: function(value) {
+            if (!value) return true;
+            return value.includes('linkedin.com');
+          },
+          message: 'LinkedIn URL must contain linkedin.com'
+        }
+      },
+      twitter: {
+        type: String,
+        validate: {
+          validator: function(value) {
+            if (!value) return true;
+            return value.includes('x.com');
+          },
+          message: 'Twitter URL must contain twitter.com'
+        }
+      }
+    },
+    education: {
+      type: String,
+      required: [true, 'Education is required.'],
+    },
+    workExperience: {
+      type: String,
     },
   },
   { timestamps: true }

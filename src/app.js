@@ -17,11 +17,13 @@ const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const userRouter = require("./routes/user");
 const requestRouter = require("./routes/requests");
+const imageUploadRouter = require('./routes/imageUpload');
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", userRouter);
 app.use("/", requestRouter);
+app.use("/", imageUploadRouter);
 
 connectDB().then(() => {
     console.log("Successfully connected to the database");

@@ -8,7 +8,7 @@ const authRouter = express.Router();
 authRouter.post("/signup", async (req, res) => {
     try {
         validateSignupData(req);
-        const { firstName, lastName, email, password, age, experienceLevel, location, gender } = req.body;
+        const { firstName, lastName, email, password, age, experienceLevel, location, gender, education, profileSummary } = req.body;
         // Hashing password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -21,6 +21,8 @@ authRouter.post("/signup", async (req, res) => {
             location,
             gender,
             password: hashedPassword,
+            education,
+            profileSummary
         });
         await user.save();
         // Sign JWT and log the user in immediately after signup
