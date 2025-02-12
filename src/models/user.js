@@ -150,6 +150,8 @@ const userSchema = new mongoose.Schema(
     workExperience: {
       type: String,
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

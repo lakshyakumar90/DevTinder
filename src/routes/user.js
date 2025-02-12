@@ -5,6 +5,7 @@ const User = require('../models/user');
 
 const userRouter = express.Router();
 
+const DATA = "_id firstName lastName profilePicture gender bio location age experienceLevel skills profileSummary education workExperience socialLinks";
 //Get all pending requests 
 userRouter.get("/user/requests/received", userAuth, async (req, res) => {
     try {
@@ -12,8 +13,10 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
         const connectionRequests = await ConnectionRequest.find({
             toUserId: loggedInUser._id,
             status: "interested",
-        }).populate("fromUserId", "firstName lastName profilePicture gender bio location experienceLevel skills profileSummary education");
-
+        }).populate({
+            path: 'fromUserId',
+            select: DATA
+        });
 
         res.json({
             message: connectionRequests.length > 0 ? "Connection requests found" : "No requests found",
@@ -27,8 +30,6 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
     }
 });
 
-
-const DATA = "firstName lastName profilePicture gender bio location experienceLevel skills profileSummary education workExperience socialLinks";
 userRouter.get("/user/connections", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
@@ -55,20 +56,24 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
                 : connection.fromUserId;
 
             // Only include the specified fields
-            const { firstName, lastName, profilePicture, gender, bio, location, experienceLevel, skills, profileSummary, education } = connectedUser;
+            const { _id, firstName, lastName, profilePicture, gender, bio, location, experienceLevel, skills, profileSummary, education, age, socialLinks, workExperience } = connectedUser;
             return {
                 connectionId: connection._id,
                 user: {
+                    _id,
                     firstName,
                     lastName,
                     profilePicture,
                     gender,
                     bio,
+                    age,
                     location,
                     experienceLevel,
                     skills,
                     profileSummary,
                     education,
+                    socialLinks,
+                    workExperience
                 },
                 status: connection.status,
             };
