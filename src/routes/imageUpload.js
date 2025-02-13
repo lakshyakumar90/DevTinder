@@ -19,4 +19,27 @@ imageUploadRouter.post("/upload", upload.single("profilePic"), userAuth, async (
   }
 });
 
+imageUploadRouter.delete("/remove-profile-pic", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user; // Get user from middleware
+
+    // Set the default profile picture
+    const defaultProfilePic =
+      "https://t3.ftcdn.net/jpg/06/33/54/78/360_F_633547842_AugYzexTpMJ9z1YcpTKUBoqBF0CUCk10.jpg";
+
+    loggedInUser.profilePicture = defaultProfilePic;
+    await loggedInUser.save(); // Save changes in the database
+
+    res.json({
+      success: true,
+      message: "Profile picture removed successfully!",
+      user: loggedInUser,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+module.exports = imageUploadRouter;
+
 module.exports = imageUploadRouter;
