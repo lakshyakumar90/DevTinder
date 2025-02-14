@@ -4,7 +4,8 @@ const User = require('../models/user');
 const { userAuth } = require('../middlewares/auth');
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const sendEmail = require("../utils/sendEmail");
+const { sendResetPasswordEmail } = require("../utils/sendEmail");
+const sesSendEmail = require("../utils/sesSendEmail");
 
 const profileRouter = express.Router();
 
@@ -100,8 +101,39 @@ profileRouter.post("/forgot-password/email", async (req, res) => {
 
         // Send reset email
         const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-        await sendEmail(user.email, "Password Reset Request", `Click the link to reset your password: ${resetURL}`);
 
+        const emailSubject = "Password Reset Request - Tinder for Devs";
+
+        const emailContent = `
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; max-width: 500px; margin: auto;">
+            <h2 style="color: #ff4757;">Tinder for Devs</h2>
+            <p style="font-size: 16px; color: #333;">
+                Hi <strong>${user.firstName || "User"}</strong>,  
+                <br/><br/>
+                You requested to reset your password. Click the button below to proceed:
+            </p>
+            <a href="${resetURL}" target="_blank" style="
+                background-color: #ff4757;
+                color: white;
+                text-decoration: none;
+                padding: 12px 20px;
+                border-radius: 5px;
+                display: inline-block;
+                margin-top: 10px;
+            ">Reset Password</a>
+            <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                If you didn’t request a password reset, please ignore this email.  
+                <br/>
+                This link will expire in 30 minutes.
+            </p>
+            <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                © 2025 Tinder for Devs | All rights reserved.
+            </p>
+        </div>
+    `;
+
+        const emailres = await sesSendEmail.run(user.email, emailSubject, emailContent);
+        console.log("Email sent:", emailres);
         res.status(200).json({ message: "Password reset link sent to email" });
     } catch (err) {
         console.error(err);
