@@ -12,6 +12,7 @@ const createTransporter = () => {
 
 const sendEmail = async (to, subject, content) => {
     try {
+        console.log("email sent to", to);
         const transporter = createTransporter();
 
         const mailOptions = {
@@ -22,7 +23,7 @@ const sendEmail = async (to, subject, content) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent successfully:", info);
+        console.log("email sent to", to);
         return { success: true, messageId: info.messageId };
     } catch (error) {
         console.error("Error sending email:", error.message, error.stack);
@@ -39,7 +40,6 @@ const welcomeEmail = async (to, subject, content) => {
 };
 
 const sendOtpEmail = async (to, otp) => {
-    console.log(otp);
     const subject = "Your Access Code is Here!";
     const content = `Hello,
 
@@ -57,4 +57,9 @@ Tinder for Devs Team`;
     return sendEmail(to, subject, content);
 };
 
-module.exports = { sendResetPasswordEmail, welcomeEmail, sendOtpEmail };
+const cronEmail = async (to, subject, content) => {
+
+    return sendEmail(to, subject, content);
+};
+
+module.exports = { sendResetPasswordEmail, welcomeEmail, sendOtpEmail, cronEmail };
