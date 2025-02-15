@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 var validator = require('validator');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema(
   {
@@ -152,6 +153,8 @@ const userSchema = new mongoose.Schema(
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    resetPasswordOTP: { type: String }, // Store hashed OTP
+    resetPasswordOTPExpires: { type: Date }, // OTP Expiry Time
   },
   { timestamps: true }
 );
@@ -159,6 +162,13 @@ userSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
+userSchema.methods.generateOTP = function () {
+  const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+  this.resetPasswordOTP = crypto.createHash("sha256").update(String(otp)).digest("hex"); // Hash OTP
+  this.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
+  console.log("Generated OTP:", otp);
+  return otp;
+};
 
 userSchema.methods.signJWT = async function () {
   const user = this;

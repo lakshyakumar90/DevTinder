@@ -4,7 +4,7 @@ const User = require('../models/user');
 const { userAuth } = require('../middlewares/auth');
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const { sendResetPasswordEmail } = require("../utils/sendEmail");
+const { sendResetPasswordEmail, sendOtpEmail } = require("../utils/sendEmail");
 const sesSendEmail = require("../utils/sesSendEmail");
 
 const profileRouter = express.Router();
@@ -102,37 +102,25 @@ profileRouter.post("/forgot-password/email", async (req, res) => {
         // Send reset email
         const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-        const emailSubject = "Password Reset Request - Tinder for Devs";
+        const subject = "Password Reset Request - Tinder for Devs";
 
-        const emailContent = `
-        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; max-width: 500px; margin: auto;">
-            <h2 style="color: #ff4757;">Tinder for Devs</h2>
-            <p style="font-size: 16px; color: #333;">
-                Hi <strong>${user.firstName || "User"}</strong>,  
-                <br/><br/>
-                You requested to reset your password. Click the button below to proceed:
-            </p>
-            <a href="${resetURL}" target="_blank" style="
-                background-color: #ff4757;
-                color: white;
-                text-decoration: none;
-                padding: 12px 20px;
-                border-radius: 5px;
-                display: inline-block;
-                margin-top: 10px;
-            ">Reset Password</a>
-            <p style="font-size: 14px; color: #666; margin-top: 20px;">
-                If you didn’t request a password reset, please ignore this email.  
-                <br/>
-                This link will expire in 30 minutes.
-            </p>
-            <p style="font-size: 12px; color: #999; margin-top: 10px;">
-                © 2025 Tinder for Devs | All rights reserved.
-            </p>
-        </div>
-    `;
+        const emailContentText = `
+        Tinder for Devs
+        
+        Hi ${user.firstName || "User"},
+        
+        You requested to reset your password. Click the link below to proceed:
+        
+        Reset Password: ${resetURL}
+        
+        If you didn’t request a password reset, please ignore this email.  
+        This link will expire in 30 minutes.
+        
+        © 2025 Tinder for Devs | All rights reserved.
+        `;
 
-        const emailres = await sesSendEmail.run(user.email, emailSubject, emailContent);
+
+        const emailres = await sendResetPasswordEmail(user.email, subject, emailContentText);
         console.log("Email sent:", emailres);
         res.status(200).json({ message: "Password reset link sent to email" });
     } catch (err) {
@@ -140,6 +128,61 @@ profileRouter.post("/forgot-password/email", async (req, res) => {
         res.status(500).json({ message: "Something went wrong. Please try again." });
     }
 });
+
+profileRouter.post("/forgot-password/otp", async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Generate OTP
+        const otp = user.generateOTP();
+        await user.save();
+        await sendOtpEmail(user.email, otp);
+        res.status(200).json({ message: "OTP sent to email" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+
+});
+
+profileRouter.post("/forgot-password/otp-verify", async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if OTP has expired
+        if (!user.resetPasswordExpires || user.resetPasswordExpires < Date.now()) {
+            return res.status(400).json({ message: "OTP has expired. Request a new one." });
+        }
+
+        // Hash provided OTP to compare with stored hashed OTP
+        const hashedOTP = crypto.createHash("sha256").update(String(otp)).digest("hex");
+
+        if (hashedOTP !== user.resetPasswordOTP) {
+            return res.status(400).json({ message: "Invalid OTP. Please try again." });
+        }
+
+        // Reset password
+        user.password = await bcrypt.hash(newPassword, 10);; // You should hash the password before saving!
+        user.resetPasswordOTP = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+        res.status(200).json({ message: "Password reset successfully." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+})
 
 profileRouter.post("/reset-password/:token", async (req, res) => {
     try {

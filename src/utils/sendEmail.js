@@ -1,49 +1,60 @@
 const nodemailer = require("nodemailer");
 
-const sendResetPasswordEmail = async (to, emailSubject, emailContent) => {
-    try {
-        const transporter = nodemailer.createTransport({
-            host: "email-smtp.ap-south-1.amazonaws.com", // Change to your AWS region
-            port: 465,
-            secure: true, // Use TLS
-            auth: {
-                user: process.env.AWS_SES_SMTP_USER, // Your AWS SMTP credentials
-                pass: process.env.AWS_SES_SMTP_PASS,
-            },
-        });
+const createTransporter = () => {
+    return nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.NORMAL_SENDER_EMAIL,
+            pass: process.env.NORMAL_EMAIL_PASS,
+        },
+    });
+};
 
-        await transporter.sendMail({
-            from: process.env.SENDER_EMAIL,
+const sendEmail = async (to, subject, content) => {
+    try {
+        const transporter = createTransporter();
+
+        const mailOptions = {
+            from: process.env.NORMAL_SENDER_EMAIL,
             to,
-            subject: emailSubject,
-            html: emailContent,
-        });
+            subject,
+            text: content,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Email sent successfully:", info);
+        return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error("Error sending email:", error);
+        console.error("Error sending email:", error.message, error.stack);
+        return { success: false, error: error.message };
     }
 };
 
-const welcomeEmail = async (to, emailSubject, emailContent) => {
-    try {
-        const transporter = nodemailer.createTransport({
-            host: "email-smtp.ap-south-1.amazonaws.com",
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.AWS_SES_SMTP_USER,
-                pass: process.env.AWS_SES_SMTP_PASS,
-            },
-        });
+const sendResetPasswordEmail = async (to, subject, content) => {
+    return sendEmail(to, subject, content);
+};
 
-        await transporter.sendMail({
-            from: process.env.SENDER_EMAIL,
-            to,
-            subject: emailSubject,
-            html: emailContent,
-        });
-    } catch (error) {
-        console.error("Error sending email:", error);
-    }
-}
+const welcomeEmail = async (to, subject, content) => {
+    return sendEmail(to, subject, content);
+};
 
-module.exports = { sendResetPasswordEmail, welcomeEmail };
+const sendOtpEmail = async (to, otp) => {
+    console.log(otp);
+    const subject = "Your Access Code is Here!";
+    const content = `Hello,
+
+Use the code below to verify your account:
+
+🔑 ${otp}
+
+This code will expire in 10 minutes.
+
+If you didn’t request this, you can ignore this email.
+
+Best,  
+Tinder for Devs Team`;
+
+    return sendEmail(to, subject, content);
+};
+
+module.exports = { sendResetPasswordEmail, welcomeEmail, sendOtpEmail };
