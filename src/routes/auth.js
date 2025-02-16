@@ -44,8 +44,6 @@ authRouter.post("/signup", async (req, res) => {
         `;
 
         const emailResponse = await welcomeEmail(user.email, emailSubject, emailContentText);
-        console.log("Email sent:", emailResponse);
-
         const token = await user.signJWT();
         res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) });
         res.json({

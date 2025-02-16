@@ -166,7 +166,6 @@ userSchema.methods.generateOTP = function () {
   const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
   this.resetPasswordOTP = crypto.createHash("sha256").update(String(otp)).digest("hex"); // Hash OTP
   this.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
-  console.log("Generated OTP:", otp);
   return otp;
 };
 

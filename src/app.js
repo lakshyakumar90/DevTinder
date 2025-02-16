@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require("express");
+const http = require("http");
 const connectDB = require("./config/database");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -26,9 +27,11 @@ app.use("/", userRouter);
 app.use("/", requestRouter);
 app.use("/", imageUploadRouter);
 
+const server = http.createServer(app);
+
 connectDB().then(() => {
     console.log("Successfully connected to the database");
-    app.listen(3000, () => {
+    server.listen(process.env.PORT, () => {
         console.log("Successfully started")
     });
 }).catch((err) => {
