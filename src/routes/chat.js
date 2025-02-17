@@ -7,6 +7,11 @@ const chatRouter = express.Router();
 chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
     const { targetUserId } = req.params;
     const userId = req.user._id;
+    const messageLimit = 500;
+
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 4;
+    limit = limit > 50 ? 50 : limit;
 
     try {
         let chat = await Chat.findOne({
@@ -23,9 +28,25 @@ chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
             })
         }
         await chat.save();
+
+        // const messages = chat.messages.slice(-messageLimit);
+        const totalMessages = chat.messages.length;
+        const skip = Math.max(0, totalMessages - page * limit);
+        const messages = chat.messages.slice(-limit - skip, chat.messages.length - skip);
+
         res.status(200).json({
             message: "Chat found",
-            data: chat
+            data: {
+                ...chat.toObject(),
+                messages,
+                pagination: {
+                    totalMessages,
+                    page,
+                    limit,
+                    totalPages: Math.ceil(totalMessages / limit),
+                    hasMore: skip > 0, // True if there are more messages to fetch
+                },
+            },
         })
     } catch (err) {
         res.status(500).json({
