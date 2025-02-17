@@ -7,10 +7,9 @@ const chatRouter = express.Router();
 chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
     const { targetUserId } = req.params;
     const userId = req.user._id;
-    const messageLimit = 500;
-
+    
     const page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 4;
+    let limit = parseInt(req.query.limit) || 50;
     limit = limit > 50 ? 50 : limit;
 
     try {
