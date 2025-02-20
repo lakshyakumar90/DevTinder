@@ -1,4 +1,5 @@
 const validator = require("validator");
+const User = require("../models/user");
 
 const validateSignupData = (req) => {
     const { firstName, lastName, email, password, age, experienceLevel, location, gender, education, workExperience, profileSummary } = req.body;
@@ -16,6 +17,12 @@ const validateSignupData = (req) => {
     // Validate email
     if (!email || !validator.isEmail(email)) {
         throw new Error("A valid email address is required.");
+    }
+
+    // Check if email already exists
+    const isEmailExists = User.findOne({ email: email });
+    if (isEmailExists) {
+        throw new Error("Email already exists. Please Login");
     }
 
     // Validate password

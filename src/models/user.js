@@ -24,10 +24,17 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, 'Email is required.'],
-      unique: [true, 'Email already exists.'], // Ensures email is unique
+      unique:  [true, 'Email already exists.'],
       lowercase: true,
       trim: true,
       validate: {
+        validator: async function (value) {
+          const user = await mongoose.model('User').findOne({ email: value });
+          return !user;
+        },
+        message: 'Email already exists.',
+      },
+      validate: { // Keep the email format validation
         validator: function (value) {
           return validator.isEmail(value);
         },
