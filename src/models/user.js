@@ -8,6 +8,11 @@ const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema(
   {
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     firstName: {
       type: String,
       required: [true, 'First name is required.'],
@@ -24,7 +29,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, 'Email is required.'],
-      unique:  [true, 'Email already exists.'],
+      unique: [true, 'Email already exists.'],
       lowercase: true,
       trim: true,
       validate: {
@@ -43,7 +48,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required.'],
       trim: true,
       minlength: [8, 'Password must be at least 8 characters long.'],
       validate: {
@@ -56,7 +60,6 @@ const userSchema = new mongoose.Schema(
     },
     age: {
       type: Number,
-      required: [true, 'Age is required.'],
       min: [18, 'You must be at least 18 years old.'],
     },
     bio: {
@@ -75,7 +78,6 @@ const userSchema = new mongoose.Schema(
     experienceLevel: {
       type: String,
       lowercase: true,
-      required: [true, 'Experience level is required.'],
       enum: {
         values: ['beginner', 'intermediate', 'advanced', 'expert'],
         message: 'Experience level must be one of: beginner, intermediate, advanced, expert.',
@@ -83,7 +85,6 @@ const userSchema = new mongoose.Schema(
     },
     location: {
       type: String,
-      required: [true, 'Location is required.'],
     },
     profilePicture: {
       type: String,
@@ -98,7 +99,6 @@ const userSchema = new mongoose.Schema(
     gender: {
       type: String,
       lowercase: true,
-      required: [true, 'Gender is required.'],
       enum: {
         values: ['male', 'female', 'other'],
         message: 'Gender must be one of: male, female, other.',
@@ -106,14 +106,13 @@ const userSchema = new mongoose.Schema(
     },
     profileSummary: {
       type: String,
-      required: [true, 'Profile summary is required.'],
       maxlength: [200, 'Profile summary cannot exceed 200 characters.'],
     },
     socialLinks: {
       instagram: {
         type: String,
         validate: {
-          validator: function(value) {
+          validator: function (value) {
             if (!value) return true; // Allow empty/null values
             return value.includes('instagram.com');
           },
@@ -123,7 +122,7 @@ const userSchema = new mongoose.Schema(
       github: {
         type: String,
         validate: {
-          validator: function(value) {
+          validator: function (value) {
             if (!value) return true;
             return value.includes('github.com');
           },
@@ -133,7 +132,7 @@ const userSchema = new mongoose.Schema(
       linkedin: {
         type: String,
         validate: {
-          validator: function(value) {
+          validator: function (value) {
             if (!value) return true;
             return value.includes('linkedin.com');
           },
@@ -143,7 +142,7 @@ const userSchema = new mongoose.Schema(
       twitter: {
         type: String,
         validate: {
-          validator: function(value) {
+          validator: function (value) {
             if (!value) return true;
             return value.includes('x.com');
           },
@@ -153,7 +152,6 @@ const userSchema = new mongoose.Schema(
     },
     education: {
       type: String,
-      required: [true, 'Education is required.'],
     },
     workExperience: {
       type: String,

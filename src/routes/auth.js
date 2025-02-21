@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 
 const authRouter = express.Router();
 const { welcomeEmail } = require("../utils/sendEmail");
+const passport = require("passport");
 
 authRouter.post("/signup", async (req, res) => {
     try {
@@ -85,9 +86,39 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", (req, res) => {
     res.cookie("token", null, { expires: new Date(Date.now()) });
+    res.clearCookie("session");
     res.json({
         message: "Logged out successfully",
     })
 })
+
+authRouter.get("/googlelogin", passport.authenticate("google", {
+    scope: ["profile", "email"],
+}))
+
+authRouter.get("/auth/google/callback", passport.authenticate("google",
+    {
+        scope: ["profile", "email"],
+        failureRedirect: "/login",
+    }),
+    async (req, res) => {
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Unauthorized access: Please Login with valid credentials",
+            });
+        }
+        try {
+            const user = req.user;
+            const token = await user.signJWT();
+            res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) });
+            res.json({
+                message: "Logged in successfully",
+                data: user,
+            })
+        } catch (err) {
+            res.status(500).send(err.message);
+        }
+    }
+);
 
 module.exports = authRouter;
