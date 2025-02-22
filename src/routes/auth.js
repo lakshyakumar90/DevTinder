@@ -111,10 +111,11 @@ authRouter.get("/auth/google/callback", passport.authenticate("google",
             const user = req.user;
             const token = await user.signJWT();
             res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) });
-            res.json({
-                message: "Logged in successfully",
-                data: user,
-            })
+            // res.json({
+            //     message: "Logged in successfully",
+            //     data: user,
+            // })
+            return res.redirect(process.env.FRONTEND_URL);
         } catch (err) {
             res.status(500).send(err.message);
         }
