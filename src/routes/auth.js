@@ -122,4 +122,30 @@ authRouter.get("/auth/google/callback", passport.authenticate("google",
     }
 );
 
+authRouter.get("/githublogin", passport.authenticate("github", {
+    scope: ["user:email"],
+}))
+
+authRouter.get("/auth/github/callback", passport.authenticate("github", {
+    scope: ["user: email"],
+    failureRedirect: "/login",
+}),
+    async (req, res) => {
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Unauthorized access: Please Login with valid credentials",
+            });
+        }
+        try {
+            const user = req.user;
+            const token = await user.signJWT();
+            res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) });
+
+            return res.redirect(process.env.FRONTEND_URL);
+        } catch (err) {
+            res.status(500).send(err.message);
+        }
+    }
+);
+
 module.exports = authRouter;
